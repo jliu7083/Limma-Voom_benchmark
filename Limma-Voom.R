@@ -4,6 +4,7 @@ library(Glimma)
 library(edgeR)
 library(Mus.musculus)
 library(microbenchmark)
+library(zoo)
 ####  data preparation  #########################################
 res_200Mouse3CellPop<-microbenchmark( 
   "dataPre"<-{files <- c("GSM1545535_10_6_5_11.txt", "GSM1545536_9_6_5_11.txt",
@@ -35,14 +36,11 @@ res_200Mouse3CellPop<-microbenchmark(
   keep.exprs <- filterByExpr(x, group=group) #  default,  min.count = 10, min.total.count = 15, large.n = 10, min.prop = 0.7
   x <- x[keep.exprs,, keep.lib.sizes=FALSE]
   dim(x)
-  
-  
-  x_counts<-as.data.frame(x$counts)
+    x_counts<-as.data.frame(x$counts)
   x_counts$ID<-rownames(x_counts)
   x_gene<-x$genes
   x_out<-merge(x_gene,x_counts, by.x='ENTREZID',by.y='ID')
-  # enlarge the data/counts to 20x
-  library(zoo)
+  # enlarge the data/counts to 200x
   test200<-coredata(x_out)[,rep(seq(ncol(x_out))[4:12],200)]
   test200f<-cbind(x_out[,1:3],test200)
   group<-as.factor(rep(x$samples$group,200))
@@ -54,7 +52,6 @@ res_200Mouse3CellPop<-microbenchmark(
   row.names(x200)
   x200$genes<-test200f[,c(1:3)]
   dim(x200)},
-  # filter 
   'filter'={dim(x200)
     keep.exprs <- filterByExpr(x200, group=group) #  default,  min.count = 10, min.total.count = 15, large.n = 10, min.prop = 0.7
     x200 <- x200[keep.exprs,, keep.lib.sizes=FALSE]
